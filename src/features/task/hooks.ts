@@ -1,5 +1,10 @@
 import { useState, useEffect } from "react";
-import { getTaskAction, addTaskAction, toggleTaskAction } from "./actions";
+import {
+  getTaskAction,
+  addTaskAction,
+  toggleTaskAction,
+  deleteCompletedTasksAction,
+} from "./actions";
 import type { Task } from "./types";
 import type { KeyboardEvent } from "react";
 
@@ -67,10 +72,26 @@ function useTasks() {
     }
   };
 
+  const deleteCompletedTasks = async (tasks: Task[]): Promise<void> => {
+    const completedTasksIds = tasks
+      .filter((task) => task.is_completed)
+      .map((task) => task.id);
+
+    const inCompletedTasks = tasks.filter((task) => !task.is_completed);
+    setTasks(inCompletedTasks);
+
+    try {
+      await deleteCompletedTasksAction(completedTasksIds);
+    } catch (error) {
+      console.error("Failed to delete completed tasks with:", error);
+    }
+  };
+
   return {
     tasks,
     addTask,
     toggleCheckboxChange,
+    deleteCompletedTasks,
   };
 }
 

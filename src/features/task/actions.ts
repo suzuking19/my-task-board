@@ -50,4 +50,19 @@ async function toggleTaskAction(id: number) {
   return data;
 }
 
-export { getTaskAction, addTaskAction, toggleTaskAction };
+async function deleteCompletedTasksAction(task_ids: number[]) {
+  const supabase = await createClient();
+
+  const { error } = await supabase.from("tasks").delete().in("id", task_ids);
+
+  if (error) {
+    throw error;
+  }
+}
+
+export {
+  getTaskAction,
+  addTaskAction,
+  toggleTaskAction,
+  deleteCompletedTasksAction,
+};
