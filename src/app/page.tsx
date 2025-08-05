@@ -1,4 +1,4 @@
-import TaskList from "@/features/task/TaskList";
+import TaskList from "@/features/tasks/TaskList";
 
 export default function Home() {
   return (
