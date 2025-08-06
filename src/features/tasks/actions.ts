@@ -26,6 +26,19 @@ async function addTaskAction(title: string) {
   return data[0];
 }
 
+async function addSubTaskAction(parent_task_id: number, title: string) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("subtasks")
+    .insert({ parent_task_id, title, is_completed: false })
+    .select();
+
+  if (error) {
+    throw error;
+  }
+  return data[0];
+}
+
 async function toggleTaskAction(id: number) {
   const supabase = await createClient();
 
@@ -63,6 +76,7 @@ async function deleteCompletedTasksAction(task_ids: number[]) {
 export {
   getTaskAction,
   addTaskAction,
+  addSubTaskAction,
   toggleTaskAction,
   deleteCompletedTasksAction,
 };

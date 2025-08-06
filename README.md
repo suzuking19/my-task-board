@@ -53,6 +53,18 @@ You can freely set the port number in the `package.json` file. Please change it 
     | `title`        | `text`        |
     | `is_completed` | `boolean`     |
 
+    **Subtasks Table Structure**
+
+    | Column Name      | Type          |
+    | :--------------- | :------------ |
+    | `id`             | `int8`        |
+    | `parent_task_id` | `int8`        |
+    | `title`          | `text`        |
+    | `is_completed`   | `boolean`     |
+    | `created_at`     | `timestamptz` |
+
+    > Note: `parent_task_id` is a foreign key that references the `id` of the `tasks` table.
+
 4.  **.env File Setup**
 
     Rename the `.env.txt` file to `.env`.
@@ -119,6 +131,18 @@ You can freely set the port number in the `package.json` file. Please change it 
     | `created_at`   | `timestamptz` |
     | `title`        | `text`        |
     | `is_completed` | `boolean`     |
+
+    **サブタスクテーブル構造**
+
+    | カラム名         | 型            |
+    | :--------------- | :------------ |
+    | `id`             | `int8`        |
+    | `parent_task_id` | `int8`        |
+    | `title`          | `text`        |
+    | `is_completed`   | `boolean`     |
+    | `created_at`     | `timestamptz` |
+
+    > 注意: `parent_task_id`は`tasks`テーブルの`id`を参照する外部キーです。
 
 4.  **.env ファイルの設定**
 

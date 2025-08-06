@@ -10,11 +10,21 @@ import type { KeyboardEvent } from "react";
 
 function useTasks() {
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isSubTaskMode, setIsSubTaskMode] = useState(false);
+  const [latestTask, setLatestTask] = useState<Task>(tasks[tasks.length - 1]);
 
   useEffect(() => {
     const loadTasks = async () => {
-      const tasksFromDB = await getTaskAction();
-      setTasks(tasksFromDB);
+      try {
+        const tasksFromDB = await getTaskAction();
+        setTasks(tasksFromDB);
+        setLatestTask(tasksFromDB[tasksFromDB.length - 1]);
+      } catch (error) {
+        console.error("Failed to load tasks with: ", error);
+      } finally {
+        setIsLoading(false);
+      }
     };
     loadTasks();
   }, []);
@@ -31,6 +41,8 @@ function useTasks() {
 
     setTasks((prevTasks) => [...prevTasks, tmpTask]);
 
+    setLatestTask(tmpTask);
+
     try {
       const newTask = await addTaskAction(title);
 
@@ -38,11 +50,50 @@ function useTasks() {
         setTasks((prevTasks) =>
           prevTasks.map((task) => (task.id === tmpId ? newTask : task))
         );
+
+        setLatestTask(newTask);
       }
     } catch (error) {
       setTasks((prevTasks) =>
         prevTasks.map((task) => (task.id == tmpId ? tmpTask : task))
       );
+      setLatestTask(tmpTask);
+
+      console.error("Faild to add task with:", error);
+    }
+  };
+
+  const addSubTask = async (parentId: number, title: string) => {
+    if (title.trim() === "") return;
+
+    const tmpId = Date.now();
+    const tmpTask: Task = {
+      id: tmpId,
+      parent_task_id: parentId,
+      title: title,
+      is_completed: false,
+    };
+
+    setTasks((prevTasks) => [...prevTasks, tmpTask]);
+
+    setLatestTask(tmpTask);
+
+    try {
+      const newTask = await addTaskAction(title);
+
+      if (newTask) {
+        setTasks((prevTasks) =>
+          prevTasks.map((task) => (task.id === tmpId ? newTask : task))
+        );
+
+        setLatestTask(newTask);
+      }
+    } catch (error) {
+      setTasks((prevTasks) =>
+        prevTasks.map((task) => (task.id == tmpId ? tmpTask : task))
+      );
+      setLatestTask(tmpTask);
+
       console.error("Faild to add task with:", error);
     }
   };
@@ -87,16 +138,26 @@ function useTasks() {
     }
   };
 
+  const toggleSubTaskMode = () => {
+    setIsSubTaskMode((prev) => !prev);
+  };
+
   return {
     tasks,
+    isLoading,
+    isSubTaskMode,
+    latestTask,
     addTask,
+    addSubTask,
     toggleCheckboxChange,
     deleteCompletedTasks,
+    toggleSubTaskMode,
   };
 }
 
 function useNewTaskInput() {
   const [newTaskTitle, setNewTaskTitle] = useState<string>("");
+
   const handleKeyDown = (
     e: KeyboardEvent<HTMLInputElement>,
     onSubmit: (title: string) => void
@@ -106,10 +167,22 @@ function useNewTaskInput() {
       onSubmit(newTaskTitle);
     }
   };
+
+  const handleKeyDownForSubTask = (
+    e: KeyboardEvent<HTMLInputElement>,
+    parentId: number,
+    onSubmit: (parentId: number, title: string) => void
+  ) => {
+    if (e.key == "Enter") {
+      setNewTaskTitle("");
+      onSubmit(parentId, newTaskTitle);
+    }
+  };
   return {
     newTaskTitle,
     setNewTaskTitle,
     handleKeyDown,
+    handleKeyDownForSubTask,
   };
 }
 
